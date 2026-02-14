@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Our Eternal Story: Anime Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cherry+Bomb+One&family=M+PLUS+Rounded+1c:wght@300;700&family=Caveat:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sky-blue: #74b9ff;
+            --sunset-pink: #ff7675;
+            --sakura: #fd79a8;
+            --glass: rgba(255, 255, 255, 0.35);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            margin: 0; padding: 0; font-family: 'M PLUS Rounded 1c', sans-serif;
+            background: linear-gradient(180deg, #0984e3 0%, #74b9ff 40%, #fab1a0 100%);
+            height: 100vh; overflow: hidden; color: #2d3436;
+        }
+
+        #petal-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+
+        /* --- STICKER STYLING --- */
+        .sticker {
+            position: absolute; pointer-events: none; z-index: 15;
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1));
+            animation: floatSticker 3s ease-in-out infinite alternate;
+        }
+        @keyframes floatSticker {
+            from { transform: translateY(0) rotate(-5deg); }
+            to { transform: translateY(-15px) rotate(5deg); }
+        }
+
+        .emote-pop {
+            position: absolute; font-size: 4rem; z-index: 20;
+            animation: popOut 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes popOut {
+            0% { transform: scale(0) rotate(-20deg); opacity: 0; }
+            100% { transform: scale(1) rotate(10deg); opacity: 1; }
+        }
+
+        /* --- SCREEN SYSTEM --- */
+        .screen {
+            position: absolute; width: 100%; height: 100%;
+            display: none; flex-direction: column; align-items: center;
+            justify-content: center; text-align: center; padding: 25px; z-index: 10;
+        }
+        .active-screen { display: flex; animation: fadeInAnime 0.8s ease-out forwards; }
+        
+        @keyframes fadeInAnime { 
+            0% { opacity: 0; transform: translateY(10px); } 
+            100% { opacity: 1; transform: translateY(0); } 
+        }
+
+        .anime-card {
+            background: var(--glass); backdrop-filter: blur(15px);
+            border: 4px solid white; border-radius: 35px; padding: 40px 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            max-width: 420px; width: 95%; position: relative;
+        }
+
+        .btn {
+            background: white; color: var(--sakura); border: none; 
+            padding: 14px 35px; font-family: 'Cherry Bomb One', cursive; 
+            font-size: 1.2rem; cursor: pointer; border-radius: 50px; 
+            transition: 0.3s; margin: 10px;
+            box-shadow: 0 8px 0px #fab1a0;
+        }
+        .btn:active { transform: translateY(4px); box-shadow: 0 4px 0px #fab1a0; }
+        .btn-back { background: #dfe6e9; color: #636e72; box-shadow: 0 8px 0px #b2bec3; }
+
+        /* --- KAWAII BOXES --- */
+        .gift-row { display: flex; gap: 15px; }
+        .heart-box { width: 90px; height: 90px; cursor: pointer; position: relative; transform-style: preserve-3d; transition: 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .heart-box.flipped { transform: rotateY(180deg); }
+        .face { position: absolute; width: 100%; height: 100%; border-radius: 20px; display: flex; align-items: center; justify-content: center; backface-visibility: hidden; border: 4px solid white; }
+        .face-front { background: var(--sakura); font-size: 2.5rem; color: white; }
+        .face-back { background: white; transform: rotateY(180deg); color: var(--sakura); font-family: 'Caveat'; font-size: 1.5rem; font-weight: bold; }
+
+        /* --- ANIME PHOTO STYLING --- */
+        .memory-node {
+            position: relative; width: 280px; background: white;
+            padding: 10px; border-radius: 15px; border: 4px solid white;
+            margin: 60px 0; z-index: 10;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        .memory-node img { width: 100%; border-radius: 10px; display: block; filter: saturate(1.2); }
+        .memory-node p { font-family: 'Caveat'; font-size: 1.8rem; margin: 10px 0 0 0; color: #d63031; }
+        
+        /* --- FINAL JOURNEY SCROLL --- */
+        .scroll-area { overflow-y: auto; scroll-behavior: smooth; justify-content: flex-start !important; padding-top: 100px; }
+        .scroll-area::-webkit-scrollbar { display: none; }
+        
+        .rope-svg { position: absolute; top: 0; left: 0; width: 100%; height: 3500px; pointer-events: none; z-index: 5; }
+        .rope-path {
+            stroke: white; stroke-width: 6; fill: none;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.8));
+        }
+
+        .node-left { align-self: flex-start; margin-left: 20px; }
+        .node-right { align-self: flex-end; margin-right: 20px; }
+    </style>
+</head>
+<body onclick="playClickSound()">
+
+    <canvas id="petal-canvas"></canvas>
+    
+    <audio id="music1" loop><source src="ANIME_LOFI_THEME.mp3"></audio>
+    <audio id="music2" loop><source src="RADWIMPS_STYLE_SONG.mp3"></audio>
+    <audio id="sfx-click"><source src="CLICK_SOUND.mp3"></audio>
+    <audio id="sfx-flip"><source src="FLIP_SOUND.mp3"></audio>
+
+    <div id="screen-1" class="screen active-screen">
+        <div class="sticker" style="top: 15%; left: 10%; font-size: 3rem;">✨</div>
+        <div class="sticker" style="bottom: 20%; right: 15%; font-size: 4rem; animation-delay: 0.5s;">💖</div>
+        <div class="sticker" style="top: 25%; right: 10%; font-size: 2.5rem; animation-delay: 1s;">🌈</div>
+        
+        <div class="anime-card">
+            <h1 style="font-family:'Cherry Bomb One'; color: white; -webkit-text-stroke: 1.5px var(--sakura);">Hello! Sunshine,</h1>
+            <p>Our story is like a movie scene... shall we start? ✨</p>
+            <button class="btn" onclick="start()">Start Episode ❤️</button>
+            <button class="btn btn-back" onclick="nextScreen(2)">Wait!</button>
+        </div>
+    </div>
+
+    <div id="screen-2" class="screen">
+        <div class="emote-pop" style="top: 20%; right: 20%;">💢</div>
+        <div class="emote-pop" style="bottom: 15%; left: 15%; animation-delay: 0.3s;">😭</div>
+        
+        <div class="anime-card" style="border-color: #ff7675;">
+            <h1 style="font-family:'Cherry Bomb One'; color: #d63031;">Eh?! Baka! 🥺</h1>
+            <p>Don't leave the protagonist alone!</p>
+            <button class="btn" onclick="nextScreen(1)">Return</button>
+            <button class="btn btn-back" onclick="nextScreen(3)">Still No</button>
+        </div>
+    </div>
+
+    <div id="screen-3" class="screen">
+        <div class="emote-pop" style="top: 10%; left: 50%; transform: translateX(-50%);">😱</div>
+        <div class="anime-card">
+            <h1 style="font-family:'Cherry Bomb One'; color: var(--sakura);">Security Check (answer is in question)</h1>
+            <p>You can't escape destiny! What is the secret flower key?</p>
+            <input type="text" id="flower" placeholder="Tulip?Rose?" style="background:white; border:none; border-radius:15px; color:var(--sakura); text-align:center; padding:12px; width:85%; outline:none; font-size:1.2rem; margin:20px 0;">
+            <button class="btn" onclick="check()">Validate</button>
+            <button id="sorry" class="btn btn-back" disabled style="opacity:0.2" onclick="nextScreen(1)">I'm Sorry 🌸</button>
+        </div>
+    </div>
+
+    <div id="screen-4" class="screen">
+        <h1 style="margin-bottom:50px; font-family:'Cherry Bomb One'; font-size:2.5rem; color:white;">Gacha Vault 🎀</h1>
+        <div class="gift-row">
+            <div class="heart-box" id="hb1" onclick="boxLogic(1)"><div class="face face-front">🌟</div><div class="face face-back">LOVE</div></div>
+            <div class="heart-box" id="hb2" onclick="boxLogic(2)"><div class="face face-front">🌸</div><div class="face face-back">US</div></div>
+            <div class="heart-box" id="hb3" onclick="boxLogic(3)"><div class="face face-front">🍭</div><div class="face face-back">MORE</div></div>
+        </div>
+        <p style="margin-top:30px; font-family:'Caveat'; font-size:1.8rem; color:white;">Which one will you pick?</p>
+    </div>
+
+    <div id="screen-5" class="screen"><div class="memory-node"><img src="PHOTO_1.jpg"><p>A Cinematic Day.</p></div><button class="btn btn-back" onclick="nextScreen(4)">Back</button></div>
+    <div id="screen-6" class="screen"><div class="memory-node"><img src="PHOTO_2.jpg"><p>Our Spark.</p></div><button class="btn btn-back" onclick="nextScreen(4)">Back</button></div>
+
+    <div id="screen-7" class="screen">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:17px; margin-bottom: 27px;">
+            <div class="heart-box" style="width:170px;" onclick="this.classList.toggle('flipped'); playFlipSound();"><div class="face face-front">?</div><div class="face face-back">Baka! you say with a playful grin,
+              Yet your soft smile pulls me in</div></div>
+            <div class="heart-box" style="width:170px;" onclick="this.classList.toggle('flipped'); playFlipSound();"><div class="face face-front">?</div><div class="face face-back">Destiny pulls our paths in line,
+              Like a dream, your heart finds mine.</div></div>
+            <div class="heart-box" style="width:170px;" onclick="this.classList.toggle('flipped'); playFlipSound();"><div class="face face-front">?</div><div class="face face-back">Forever our fates intertwine,
+              Your heart always finding mine.</div></div>
+            <div class="heart-box" style="width:170px;" onclick="this.classList.toggle('flipped'); playFlipSound();"><div class="face face-front">?</div><div class="face face-back">Forever Soulmates</div></div>
+        </div>
+        <button class="btn" onclick="goFinale()">Finale Journey ✨</button>
+    </div>
+
+    <div id="screen-8" class="screen scroll-area">
+        <svg class="rope-svg"><path id="ropePath" class="rope-path" d=""/></svg>
+        <div class="memory-node node-left"><img src="M1.jpg"><p>Opening Scene</p></div>
+        <div class="memory-node node-right"><img src="M2.jpg"><p>The Climax</p></div>
+        <div class="memory-node node-left"><img src="M3.jpg"><p>Endless Summer</p></div>
+        <div class="memory-node node-right"><img src="M4.jpg"><p>Happy Ending</p></div>
+        
+        <h2 style="font-family:'Cherry Bomb One'; font-size:3rem; color:white; margin:60px 0; -webkit-text-stroke: 2px var(--sakura);">Kimi no Koto ga Suki!</h2>
+        <button class="btn" onclick="location.reload()" style="margin-bottom:100px;">Rewatch Episode</button>
+    </div>
+
+    <script>
+        const sfxClick = document.getElementById('sfx-click');
+        const sfxFlip = document.getElementById('sfx-flip');
+        function playClickSound() { sfxClick.play(); }
+        function playFlipSound() { sfxFlip.play(); }
+
+        const canvas = document.getElementById('petal-canvas');
+        const ctx = canvas.getContext('2d');
+        let petals = [];
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resize); resize();
+        class Petal {
+            constructor() { 
+                this.x = Math.random() * canvas.width; 
+                this.y = Math.random() * canvas.height; 
+                this.s = Math.random() * 0.8 + 0.3; 
+                this.r = Math.random() * 3 + 2; 
+                this.swing = Math.random() * 2;
+            }
+            draw() { 
+                ctx.fillStyle = "rgba(253, 121, 168, 0.5)"; 
+                ctx.beginPath(); 
+                ctx.arc(this.x + Math.sin(this.swing) * 10, this.y, this.r, 0, Math.PI*2); 
+                ctx.fill(); 
+                this.y += this.s; this.swing += 0.02;
+                if(this.y > canvas.height) this.y = -10; 
+            }
+        }
+        for(let i=0; i<50; i++) petals.push(new Petal());
+        function anim() { ctx.clearRect(0,0,canvas.width, canvas.height); petals.forEach(p=>p.draw()); requestAnimationFrame(anim); }
+        anim();
+
+        function nextScreen(n) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
+            document.getElementById('screen-'+n).classList.add('active-screen');
+        }
+        function start() { document.getElementById('music1').play(); nextScreen(4); }
+        function check() { if(document.getElementById('flower').value.toLowerCase()==="tulip") { document.getElementById('sorry').disabled=false; document.getElementById('sorry').style.opacity=1; } }
+        
+        function boxLogic(n) {
+            const b = document.getElementById('hb'+n);
+            if(!b.classList.contains('flipped')) { playFlipSound(); b.classList.add('flipped'); }
+            else nextScreen(n+4);
+        }
+
+        function goFinale() {
+            document.getElementById('music1').pause();
+            document.getElementById('music2').play();
+            nextScreen(8);
+            setTimeout(drawAnimeRope, 200);
+        }
+
+        function drawAnimeRope() {
+            const nodes = document.querySelectorAll('.scroll-area .memory-node');
+            const ropePath = document.getElementById('ropePath');
+            let d = "";
+            nodes.forEach((node, i) => {
+                const x = node.offsetLeft + (node.offsetWidth / 2);
+                const y = node.offsetTop + (node.offsetHeight / 2);
+                if(i === 0) d += `M ${x} ${y}`;
+                else {
+                    const px = nodes[i-1].offsetLeft + (nodes[i-1].offsetWidth / 2);
+                    const py = nodes[i-1].offsetTop + (nodes[i-1].offsetHeight / 2);
+                    const cpY = py + (y - py) / 2;
+                    d += ` C ${px} ${cpY}, ${x} ${cpY}, ${x} ${y}`;
+                }
+            });
+            ropePath.setAttribute('d', d);
+        }
+    </script>
+</body>
+</html>
